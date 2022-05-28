@@ -25,7 +25,7 @@ max_seq_len=128
      --epoch 10 --max_seq_len ${max_seq_len} --batch_size 16 \
      --lr 5e-05 --use_truecase False \
      --model_name save/${dataset}/${dataset}_naiveft_io_wo_pretrain_epoch  \
-     --load_dataset False --use_gpu ${use_gpu} \
+     --load_dataset False \
      --load_model True --load_model_name pretrained_models/lc_pretrained.pt
 
 
