@@ -346,7 +346,7 @@ def process_data(ner_tags, sents, tokenizer, label2id, max_sequence_len, base_mo
                 print(last_words)
                 print(words)
             sent = ' '.join(words)
-        if base_model == 'bert':
+        if base_model == 'bert' or base_model == 'kobert':
             wpcs = ["[CLS]"]
             wpcs.extend(tokenizer.tokenize(sent))
             wpcs.append("[SEP]")
@@ -432,7 +432,7 @@ def align_wpcs(words, wpcs, base_model = 'roberta', lower=False):
                 align.append((curr_start, i))
                 curr_start = i
         align.append((curr_start, len(wpcs)-1))
-    elif base_model == 'bert':
+    elif base_model == 'bert' or base_model == 'kobert':
         align = []
         curr_start, curr_wrd = 1, 0 # start at 1, b/c of CLS
         buf = []
