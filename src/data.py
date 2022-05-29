@@ -324,7 +324,7 @@ def process_data(ner_tags, sents, tokenizer, label2id, max_sequence_len, base_mo
     good_sent = 0
     bad_sent = 0
     for k,line in enumerate(sents):
-        sent = line.strip()
+        sent = re.sub("\n$", "", line).strip()
         # N.B. don't need to lower, since tokenizer does it automatically
         # if lower:
         #     sent = sent.lower()
@@ -410,7 +410,74 @@ def process_data(ner_tags, sents, tokenizer, label2id, max_sequence_len, base_mo
     logging.info(f"max seq length: {max_seq_len}")
     logging.info(f"truncate ratio: {exceed_num/len(sents)}")
     logging.info(f"good sent: {good_sent} bad sent: {bad_sent}")
+    print(good_sent, bad_sent)
     return sent_tags, sent_wpcs, label_sentence_dict
+
+special_character_mapper = {
+    "…": "...",
+    "㈜": "(주)",
+    "＆": "&",
+    "㎡": "m2",
+    "㎞": "km",
+    "²": "2",
+    "㈔": "(사)",
+    "㎖": "ml",
+    "①": "1",
+    "②": "2",
+    "③": "3",
+    "＂": '"',
+    "㎝": "cm",
+    "ㆍ": "ᆞ",
+    "ㅇ": "ᄋ",
+    "℃": "°C",
+    "ｍ": "m",
+    "g": "g",
+    "㎎": "mg",
+    "～": "~",
+    "：": ":",
+    "㎉": "kcal",
+    "''": '"',
+    "ㄴ": "ᄂ",
+    "ㄹ": "ᄅ",
+    "ⓒ": "c",
+    "女": "女",
+    "．": ".",
+    "㎏": "kg",
+    "％": "%",
+    "理": "理",
+    "ㅂ": "ᄇ",
+    "ㅁ": "ᄆ",
+    "ⓝ": "n",
+    "⅓": "1/3",
+    "⅔": "2/3",
+    "，": ",",
+    "－": "-",
+    "ㅣ": "ᅵ",
+    "（": "(",
+    "）": ")",
+    "？": "?",
+    "Ｘ": "X",
+    "㎜": "mm",
+    "㎾": "kW",
+    "０": "0",
+    "１": "1",
+    "２": "2",
+    "３": "3",
+    "４": "4",
+    "５": "5",
+    "６": "6",
+    "７": "7",
+    "８": "8",
+    "９": "9",
+    "＜": "<",
+    "＞": ">",
+    "Ｃ": "C",
+    "Ｄ": "D",
+    "Ｆ": "F",
+    "Ｔ": "T",
+    "Ｖ": "V",
+    "ⓥ": "v"
+}
 
 def align_wpcs(words, wpcs, base_model = 'roberta', lower=False):
     """
@@ -437,11 +504,15 @@ def align_wpcs(words, wpcs, base_model = 'roberta', lower=False):
         curr_start, curr_wrd = 1, 0 # start at 1, b/c of CLS
         buf = []
         for i in range(1, len(wpcs)-1): # ignore [SEP] final token
-            strpd = wpcs[i][2:] if wpcs[i].startswith("##") else wpcs[i]
+            pre_tok = "##" if base_model == 'bert' else '▁'
+            pre_tok_idx = 2 if base_model == 'bert' else 1
+            strpd = wpcs[i][pre_tok_idx:] if wpcs[i].startswith(pre_tok) else wpcs[i]
             buf.append(strpd)
             #buf.append(wpcs[i].lstrip('##'))
             fwrd = ''.join(buf)
             wrd = words[curr_wrd].lower() if lower else words[curr_wrd]
+            for before, after in special_character_mapper.items():
+                wrd = wrd.replace(before, after)
             if fwrd == wrd or fwrd == "[UNK]":
                 align.append((curr_start, i+1))
                 curr_start = i+1

@@ -8,6 +8,7 @@ import transformers
 from transformers import RobertaTokenizer, RobertaForMaskedLM, RobertaModel
 from transformers import BertTokenizer, BertForMaskedLM, BertModel
 from transformers import AdamW, get_linear_schedule_with_warmup
+from tokenization_kobert import KoBertTokenizer
 import time
 import os
 from collections import Counter, defaultdict
@@ -506,7 +507,7 @@ if __name__ == "__main__":
     parser.add_argument('--unsup_text', default='train_10percent.words')
     parser.add_argument('--unsup_ner', default='train_10percent.ner')
     parser.add_argument('--epoch', default=10, type=int)
-    parser.add_argument('--base_model', default='roberta', choices=['bert','roberta'])
+    parser.add_argument('--base_model', default='roberta', choices=['bert','roberta','kobert'])
     parser.add_argument('--train_sup_cls_num', default=4, type=int)
     parser.add_argument('--test_sup_cls_num', default=4, type=int)
     parser.add_argument('--sup_per_cls', default=5, type=int)
@@ -578,6 +579,8 @@ if __name__ == "__main__":
         tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
     elif base_model == 'bert':
         tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+    elif base_model == 'kobert':
+        tokenizer = KoBertTokenizer.from_pretrained('monologg/kobert')
 
     if not args.load_dataset:
         label2ids, id2labels = [], []
@@ -695,6 +698,9 @@ if __name__ == "__main__":
             elif base_model == 'bert':
                 model = BertNER.from_pretrained('bert-base-cased', output_attentions=False, output_hidden_states=False, \
                 use_global = False, dataset_label_nums=dataset_label_nums, support_per_class = SUP_PER_CLS, cuda_device = 0, use_bias = False)
+            elif base_model == 'kobert':
+                model = BertNER.from_pretrained('monologg/kobert', output_attentions=False, output_hidden_states=False, \
+                use_global = False, dataset_label_nums=dataset_label_nums, support_per_class = SUP_PER_CLS, cuda_device = 0, use_bias = False)
             # pretrained_dict = state['state_dict']
             # model_dict = model.state_dict()
             # pretrained_dict = {k.split('module.')[1]:v for k,v in pretrained_dict.items() if k.split('module.')[1] in model_dict}
@@ -709,6 +715,9 @@ if __name__ == "__main__":
             use_global = False, dataset_label_nums=dataset_label_nums, support_per_class = SUP_PER_CLS, cuda_device = 0, use_bias = False)
         elif base_model == 'bert':
             model = BertNER.from_pretrained('bert-base-cased', output_attentions=False, output_hidden_states=False, \
+            use_global = False, dataset_label_nums=dataset_label_nums, support_per_class = SUP_PER_CLS, cuda_device = 0, use_bias = False)
+        elif base_model == 'kobert':
+            model = BertNER.from_pretrained('monologg/kobert', output_attentions=False, output_hidden_states=False, \
             use_global = False, dataset_label_nums=dataset_label_nums, support_per_class = SUP_PER_CLS, cuda_device = 0, use_bias = False)
     if args.reinit:
         model = weights_init_custom(model)
@@ -836,6 +845,9 @@ if __name__ == "__main__":
         use_global = False, dataset_label_nums=dataset_label_nums, support_per_class = SUP_PER_CLS, cuda_device = 0, use_bias = False)
     elif base_model == 'bert':
         model = BertNER.from_pretrained('bert-base-cased', output_attentions=False, output_hidden_states=False, \
+        use_global = False, dataset_label_nums=dataset_label_nums, support_per_class = SUP_PER_CLS, cuda_device = 0, use_bias = False)
+    elif base_model == 'kobert':
+        model = BertNER.from_pretrained('monologg/kobert', output_attentions=False, output_hidden_states=False, \
         use_global = False, dataset_label_nums=dataset_label_nums, support_per_class = SUP_PER_CLS, cuda_device = 0, use_bias = False)
     if args.reinit:
         model = weights_init_custom(model)
