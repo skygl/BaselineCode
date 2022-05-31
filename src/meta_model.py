@@ -697,7 +697,7 @@ class BertNER(BertForTokenClassification):
         super().__init__(config)
         self.support_per_class = support_per_class
         self.cuda_device = cuda_device
-        self.roberta = BertModel(config)
+        self.bert = BertModel(config)
         self.use_global = use_global
         # self.tokenizer = tokenizer
         self.dropout = torch.nn.Dropout(config.hidden_dropout_prob)
@@ -729,7 +729,7 @@ class BertNER(BertForTokenClassification):
                            inputs_embeds=None,
                            labels=None):
 
-        outputs = self.roberta(
+        outputs = self.bert(
             input_ids,
             attention_mask=attention_mask,
             position_ids=position_ids,
@@ -800,7 +800,7 @@ class BertNER(BertForTokenClassification):
                        class_metric=False,
                        instance_metric=False):
 
-        outputs = self.roberta(
+        outputs = self.bert(
             input_ids,
             attention_mask=attention_mask,
             position_ids=position_ids,
@@ -951,7 +951,7 @@ class BertNER(BertForTokenClassification):
                                 class_metric=False,
                                 instance_metric=False):
 
-        outputs = self.roberta(
+        outputs = self.bert(
             input_ids,
             attention_mask=attention_mask,
             position_ids=position_ids,
@@ -1045,7 +1045,7 @@ class BertNER(BertForTokenClassification):
                              class_metric=False,
                              instance_metric=False):
 
-        outputs = self.roberta(
+        outputs = self.bert(
             input_ids,
             attention_mask=attention_mask,
             position_ids=position_ids,
@@ -1130,7 +1130,7 @@ class BertNER(BertForTokenClassification):
 
         # compute prototypes
         # self.dropout = torch.nn.Dropout(0.1)
-        outputs = self.roberta(
+        outputs = self.bert(
             sup_input_ids,
             attention_mask=sup_attention_mask,
             position_ids=position_ids,
@@ -1173,7 +1173,7 @@ class BertNER(BertForTokenClassification):
         del embeds_per_class
         del embed_class_len
 
-        outputs = self.roberta(
+        outputs = self.bert(
             input_ids,
             attention_mask=attention_mask,
             position_ids=position_ids,
