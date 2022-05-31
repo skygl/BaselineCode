@@ -107,8 +107,8 @@ def train_func(sub_trains_, epoch, tokenizer, id2labels, label_sentence_dicts, s
                 scheduler.step()
             
             print(f"batch: {(j+1) * gpu_num + g_num * 200}/{EPISODE_NUM} lr: {optimizer.param_groups[0]['lr']:.9f} loss: {loss.mean().item()/QUR_PER_CLS/SUP_CLS_NUM:.9f}")
-            writer.add_scalar('prototype_euclidean_'+args.dataset+'/'+model_name.split('/')[2]+' lr ',optimizer.param_groups[0]['lr'],epoch*EPISODE_NUM + (j+1) * gpu_num + g_num * 200)
-            writer.add_scalar('prototype_euclidean_'+args.dataset+'/'+model_name.split('/')[2]+' loss ',loss.mean().item()/QUR_PER_CLS/SUP_CLS_NUM,epoch*EPISODE_NUM + (j+1) * gpu_num + g_num * 200)
+            # writer.add_scalar('prototype_euclidean_'+args.dataset+'/'+model_name.split('/')[2]+' lr ',optimizer.param_groups[0]['lr'],epoch*EPISODE_NUM + (j+1) * gpu_num + g_num * 200)
+            # writer.add_scalar('prototype_euclidean_'+args.dataset+'/'+model_name.split('/')[2]+' loss ',loss.mean().item()/QUR_PER_CLS/SUP_CLS_NUM,epoch*EPISODE_NUM + (j+1) * gpu_num + g_num * 200)
     
             # if ((j+1) * gpu_num + g_num * 200)%16 == 0:
             #     print(f"batch: {(j+1) * gpu_num + g_num * 200}/{EPISODE_NUM} lr: {optimizer.param_groups[0]['lr']:.9f} loss: {loss.mean().item()/QUR_PER_CLS/SUP_CLS_NUM:.9f}")
