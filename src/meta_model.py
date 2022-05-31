@@ -697,7 +697,7 @@ class BertNER(BertForTokenClassification):
         super().__init__(config)
         self.support_per_class = support_per_class
         self.cuda_device = cuda_device
-        self.roberta = RobertaModel(config)
+        self.roberta = BertModel(config)
         self.use_global = use_global
         # self.tokenizer = tokenizer
         self.dropout = torch.nn.Dropout(config.hidden_dropout_prob)
