@@ -480,6 +480,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     print(args)
+
+    os.environ["CUDA_VISIBLE_DEVICES"]=args.use_gpu
     print("let's use ", torch.cuda.device_count(), "GPUs!")
 
 
