@@ -444,9 +444,16 @@ if __name__ == "__main__":
 
         print('Epoch: %d' %(epoch + 1), " | time in %d minutes, %d seconds" %(mins, secs))
         print(f'\tLoss: {train_loss:.4f}(train)\t|\tPrec: {microp * 100:.1f}%(train)\t|\tRecall: {micror * 100:.1f}%(train)\t|\tF1: {microf1 * 100:.1f}%(train)')
-        # torch.save(model.module, model_name+str(epoch + 1)+'.pt')
+        torch.save(model.module, model_name+str(epoch + 1)+'.pt')
         # writer.add_scalars( 'naiveft_'+args.dataset+'/'+model_name.split('/')[-1]+' (train)', {'F1-score': microf1, 'Precision': microp, 'Recall': micror}, epoch+1)
         # writer.add_scalar('naiveft_'+args.dataset+'/'+model_name.split('/')[-1]+' Loss (train)',train_loss,epoch+1)
+        with open(f"../results/naiveft_{args.dataset}_{args.data_size}.txt",'a') as fout:
+            fout.write("\n")
+            fout.write(f"{'=' * 20}\n")
+            fout.write(f"[Epoch - {epoch}] train loss : {train_loss}\n")
+            fout.write(f"[Epoch - {epoch}] train precision : {microp}\n")
+            fout.write(f"[Epoch - {epoch}] train recall : {micror}\n")
+            fout.write(f"[Epoch - {epoch}] train f1-score : {microf1}\n")
 
         valid_loss, microp, micror, microf1, microp_per_type, micror_per_type, microf1_per_type = test(processed_test_set, epoch, test_label_sentence_dicts, soft_kmeans = SOFT_KMEANS)
         print(f'\tLoss: {valid_loss:.4f}(val)\t|\tPrec: {microp * 100:.1f}%(val)\t|\tRecall: {micror * 100:.1f}%(val)\t|\tF1: {microf1 * 100:.1f}%(val)')
@@ -454,7 +461,11 @@ if __name__ == "__main__":
         print(f'recall per type: {micror_per_type}')
         print(f'f1-score per type: {microf1_per_type}')
         with open(f"../results/naiveft_{args.dataset}_{args.data_size}.txt",'a') as fout:
-            fout.write(f"\n[Epoch - {epoch}] f1-score : {microf1}\n")
+            fout.write(f"[Epoch - {epoch}] valid loss : {valid_loss}\n")
+            fout.write(f"[Epoch - {epoch}] valid precision : {microp}\n")
+            fout.write(f"[Epoch - {epoch}] valid recall : {micror}\n")
+            fout.write(f"[Epoch - {epoch}] valid f1-score : {microf1}\n")
+            fout.write(f"{'=' * 20}\n")
         # writer.add_scalars('naiveft_'+args.dataset+'/'+model_name.split('/')[-1]+' (test)', {'F1-score': microf1, 'Precision': microp, 'Recall': micror}, epoch+1)
         # writer.add_scalar('naiveft_'+args.dataset+'/'+model_name.split('/')[-1]+' Loss (test)',valid_loss,epoch+1)
     # writer.close()
