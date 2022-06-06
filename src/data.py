@@ -363,16 +363,16 @@ def process_data(ner_tags, sents, tokenizer, label2id, max_sequence_len, base_mo
             # print(wpcs)
             aligns = align_wpcs(words, wpcs, base_model = base_model, lower=lower) 
         except IndexError:
-            print("index error")
-            print(words)
-            print(wpcs)
+            # print("index error")
+            # print(words)
+            # print(wpcs)
             bad_sent += 1
             continue
         except AssertionError:
-            print("ignoring one")
-            print("index error")
-            print(words)
-            print(wpcs)
+            # print("ignoring one")
+            # print("index error")
+            # print(words)
+            # print(wpcs)
             bad_sent += 1
             continue
         sent_wpcs.append(tokenizer.convert_tokens_to_ids(wpcs))
