@@ -274,12 +274,14 @@ def weights_init_custom(model):
     return model
 
 
-
+def log(path: str, contents: str) -> None:
+    with open(path, 'a') as fout:
+        fout.write(contents)
 
 
 if __name__ == "__main__":
 
-    
+
 
     parser = argparse.ArgumentParser(description='main',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -398,7 +400,7 @@ if __name__ == "__main__":
         test_num_data_point = sum([len(sub_train_) for sub_train_ in processed_test_set])
         print(f"number of all testing data points: {test_num_data_point}")
 
-
+        log_path = f"../results/lc_{args.dataset}_{args.data_size}.txt"
 
         LOAD_MODEL = args.load_model
         if LOAD_MODEL:
@@ -496,10 +498,9 @@ if __name__ == "__main__":
             print(f"loaded from checkpoint - learning rate: {optimizer.param_groups[0]['lr']:.9f} | time in {mins} minutes, {secs} seconds")
             start_count_num = state['count_num']
 
-        # with open(f"../results/naiveft_{args.dataset}_{args.data_size}.txt",'a') as fout:
-        #     fout.write('\n')
-        #     fout.write(str(args))
-        #     fout.write('\n')
+        log(log_path, '\n')
+        log(log_path, str(args))
+        log(log_path, '\n')
 
         for epoch in range(start_epoch, N_EPOCHS):
 
@@ -510,12 +511,26 @@ if __name__ == "__main__":
                 train_loss, microp, micror, microf1 = train_func(processed_training_set, epoch, tokenizer, train_label_sentence_dicts, soft_kmeans = SOFT_KMEANS)
             
             print(f'\tLoss: {train_loss:.4f}(train)\t|\tPrec: {microp * 100:.1f}%(train)\t|\tRecall: {micror * 100:.1f}%(train)\t|\tF1: {microf1 * 100:.1f}%(train)')
-            # torch.save(model.module, model_name+str(epoch + 1)+'.pt')
+            torch.save(model.module, model_name+str(epoch + 1)+'.pt')
             # writer.add_scalars( 'naiveft_'+args.dataset+'/'+model_name.split('/')[-1]+' (train)', {'F1-score': microf1, 'Precision': microp, 'Recall': micror}, epoch+1)
             # writer.add_scalar('naiveft_'+args.dataset+'/'+model_name.split('/')[-1]+' Loss (train)',train_loss,epoch+1)
+            log(log_path, '\n')
+            log(log_path, f"{'=' * 20}\n")
+            log(log_path, f"[Epoch - {epoch}] train loss : {train_loss}\n")
+            log(log_path, f"[Epoch - {epoch}] train precision : {microp}\n")
+            log(log_path, f"[Epoch - {epoch}] train recall : {micror}\n")
+            log(log_path, f"[Epoch - {epoch}] train f1-score : {microf1}\n")
 
             valid_loss, microp, micror, microf1, microp_per_type, micror_per_type, microf1_per_type = test(processed_test_set, epoch, test_label_sentence_dicts, soft_kmeans = SOFT_KMEANS)
             print(f'\tLoss: {valid_loss:.4f}(val)\t|\tPrec: {microp * 100:.1f}%(val)\t|\tRecall: {micror * 100:.1f}%(val)\t|\tF1: {microf1 * 100:.1f}%(val)')
+            print(f'precision per type: {microp_per_type}')
+            print(f'recall per type: {micror_per_type}')
+            print(f'f1-score per type: {microf1_per_type}')
+            log(log_path, f"[Epoch - {epoch}] valid loss : {valid_loss}\n")
+            log(log_path, f"[Epoch - {epoch}] valid precision : {microp}\n")
+            log(log_path, f"[Epoch - {epoch}] valid recall : {micror}\n")
+            log(log_path, f"[Epoch - {epoch}] valid f1-score : {microf1}\n")
+            log(log_path, f"{'=' * 20}\n")
             # print(f'microp per type: {microp_per_type} \nmicror_per_type: {micror_per_type} \nmicrof1_per_type: {microf1_per_type}')
             secs = int(time.time() - start_time)
             mins = secs / 60
@@ -526,14 +541,18 @@ if __name__ == "__main__":
             #     fout.write(f"{microf1} ")
         
         total_f1_scores.append(microf1)
+        with open(f"../results/lc_{args.dataset}_{args.data_size}.txt", 'a') as fout:
+            fout.write("\n")
         # with open(f"results/naiveft_{args.dataset}_{args.data_size}_pretrain.txt",'a') as fout:
         #     fout.write("\n")
-        # torch.save(model.module, 'teachers/'+args.train_text+'_ft.pt')
+        torch.save(model.module, 'teachers/'+args.train_text+'_ft.pt')
 
 
         if args.unsup_text is not None:
 
             print("###### Self-Training #####")
+            with open(f"../results/lc_{args.dataset}_{args.data_size}.txt", 'a') as fout:
+                fout.write("###### Self-Training #####\n")
             # predict unlabeled data using all training examples and the fine-tuned model
             
             with open(os.path.join(args.datapath, args.dataset, args.unsup_ner)) as fner, open(os.path.join(args.datapath, args.dataset, args.unsup_text)) as f:
@@ -544,11 +563,13 @@ if __name__ == "__main__":
             unsup_data_ = [[unsup_words[i], unsup_ner_tags[i]] for i in range(len(unsup_words))]
             print(f"unsup num: {len(unsup_data_)}")
 
+            # 학습된 Teacher 모델로 label 만들기
             t_prob = get_prob([unsup_data_], id2labels)
 
             unsup_data_ = [[unsup_words[i], t_prob[i]] for i in range(len(unsup_words))]
 
             #load a pre-trained model and fine-tune again using the labeled and unlabeled data
+            # Base 모델로 학습
             if LOAD_MODEL:
                 if 'checkpoint' not in args.load_model_name:
                     state = torch.load(args.load_model_name)
@@ -628,22 +649,31 @@ if __name__ == "__main__":
                 print(f"all unsup batches: {len(data_loader)}")
 
             for epoch in range(N_EPOCHS):
-
+                start_time = time.time()
                 train_loss, microp, micror, microf1 = train_func(processed_training_set, epoch, tokenizer, train_label_sentence_dicts, soft_kmeans = SOFT_KMEANS, unsup_data_iter = iter(data_loader))
-                
-                
-                print(f'\tLoss: {train_loss:.4f}(train)\t|\tPrec: {microp * 100:.1f}%(train)\t|\tRecall: {micror * 100:.1f}%(train)\t|\tF1: {microf1 * 100:.1f}%(train)')
-                
+
+                print(f'\tSelf Training Loss: {train_loss:.4f}(train)\t|\tPrec: {microp * 100:.1f}%(train)\t|\tRecall: {micror * 100:.1f}%(train)\t|\tF1: {microf1 * 100:.1f}%(train)')
+                log(log_path, "\n")
+                log(log_path, f"{'=' * 20}\n")
+                log(log_path, f"[Epoch - {epoch}] train loss : {train_loss}\n")
+                log(log_path, f"[Epoch - {epoch}] train precision : {microp}\n")
+                log(log_path, f"[Epoch - {epoch}] train recall : {micror}\n")
+                log(log_path, f"[Epoch - {epoch}] train f1-score : {microf1}\n")
+                torch.save(model.module, 'students/' + args.train_text + '_ft_epoch' + str(epoch + 1) + '.pt')
+
                 valid_loss, microp, micror, microf1, microp_per_type, micror_per_type, microf1_per_type = test(processed_test_set, epoch, test_label_sentence_dicts, soft_kmeans = SOFT_KMEANS)
-                print(f'\tLoss: {valid_loss:.4f}(val)\t|\tPrec: {microp * 100:.1f}%(val)\t|\tRecall: {micror * 100:.1f}%(val)\t|\tF1: {microf1 * 100:.1f}%(val)')
+                print(f'\tSelf Training Loss: {valid_loss:.4f}(val)\t|\tPrec: {microp * 100:.1f}%(val)\t|\tRecall: {micror * 100:.1f}%(val)\t|\tF1: {microf1 * 100:.1f}%(val)')
                 print(f'microp per type: {microp_per_type} \nmicror_per_type: {micror_per_type} \nmicrof1_per_type: {microf1_per_type}')
+                log(log_path, f"[Epoch - {epoch}] valid loss : {valid_loss}\n")
+                log(log_path, f"[Epoch - {epoch}] valid precision : {microp}\n")
+                log(log_path, f"[Epoch - {epoch}] valid recall : {micror}\n")
+                log(log_path, f"[Epoch - {epoch}] valid f1-score : {microf1}\n")
+                log(log_path, f"{'=' * 20}\n")
+
                 secs = int(time.time() - start_time)
                 mins = secs / 60
                 secs = secs % 60
-
-                print('Epoch: %d' %(epoch + 1), " | time in %d minutes, %d seconds" %(mins, secs))
-                # with open(f"../results/naiveft_{args.dataset}_{args.data_size}.txt",'a') as fout:
-                #     fout.write(f"{microf1} ")
+                print('Self-training Epoch: %d' %(epoch + 1), " | time in %d minutes, %d seconds" %(mins, secs))
             st_f1_scores.append(microf1)
 
             # with open(f'results/naiveft_{args.data_size}_{args.dataset}.txt','a') as fout:
@@ -653,9 +683,3 @@ if __name__ == "__main__":
     if len(st_f1_scores) > 0:
         print(f"self-training f1 scores: {st_f1_scores} \n average self-training f1 scores: {sum(st_f1_scores)/len(st_f1_scores)}")
     
-
-
-            
-
-
-            
