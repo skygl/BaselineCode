@@ -217,6 +217,7 @@ def get_prob(data_, id2labels):
             text_1, attention_mask_1, cls_1 = text.to(device), attention_mask.to(device).to(device), cls.to(device)
             # we use the same dataset for training and testing
             _, logits = model(text_1, attention_mask=attention_mask_1, dataset = dataset_chosen[j], output_logits=True)
+            logits = logits.detach().cpu()
             # val_loss += loss.mean().item()
             prob.extend(logits)
         # preds = [[id2label[int(x)] for j,x in enumerate(y[1:orig_len[i]-1]) if int(cls[i][j + 1]) != -100] for i,y in enumerate(output)]
