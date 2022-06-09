@@ -558,6 +558,7 @@ if __name__ == "__main__":
             with open(os.path.join(args.datapath, args.dataset, args.unsup_ner)) as fner, open(os.path.join(args.datapath, args.dataset, args.unsup_text)) as f:
                 unsup_ner_tags, unsup_words = fner.readlines(), f.readlines()
             # test_label2id, test_id2label = get_label_dict([test_ner_tags])
+            unsup_label2_id, _ = get_label_dict([unsup_ner_tags])
             unsup_ner_tags, unsup_words, _ = process_data(unsup_ner_tags, unsup_words, tokenizer, label2ids[0], max_seq_len,base_model=base_model)
             # use prediction instead of ground truth
             unsup_data_ = [[unsup_words[i], unsup_ner_tags[i]] for i in range(len(unsup_words))]
