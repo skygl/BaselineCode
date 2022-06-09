@@ -154,4 +154,7 @@ class BertNER(BertForTokenClassification):
             else:
                 return loss, outputs
         else:
-            return outputs  
+            if output_logits:
+                return outputs, logits
+            else:
+                return outputs
