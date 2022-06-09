@@ -195,7 +195,7 @@ def test(data_, epoch, label_sentence_dicts, soft_kmeans, test_all_data = True, 
     return val_loss / test_num_data_point * 64, microp, micror, microf1, microp_per_type, micror_per_type, microf1_per_type
 
 def get_prob(data_, id2labels):
-    val_loss = 0
+    # val_loss = 0
     total_pred, total_gold, total_crct = 0.0, 0.0, 0.0
     total_pred_per_type, total_gold_per_type, total_crct_per_type = defaultdict(int), defaultdict(int), defaultdict(int)
     # data = DataLoader(data_, batch_size=256, collate_fn=generate_batch)
@@ -217,7 +217,7 @@ def get_prob(data_, id2labels):
             text_1, attention_mask_1, cls_1 = text.to(device), attention_mask.to(device).to(device), cls.to(device)
             # we use the same dataset for training and testing
             loss, output, logits = model(text_1, attention_mask=attention_mask_1, labels=cls_1, dataset = dataset_chosen[j], output_logits=True)
-            val_loss += loss.mean().item()
+            # val_loss += loss.mean().item()
             prob.extend(logits)
         preds = [[id2label[int(x)] for j,x in enumerate(y[1:orig_len[i]-1]) if int(cls[i][j + 1]) != -100] for i,y in enumerate(output)]
         gold = [[id2label[int(x)] for x in y[1:orig_len[i]-1] if int(x) != -100] for i,y in enumerate(cls)]
