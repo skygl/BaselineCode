@@ -216,32 +216,32 @@ def get_prob(data_, id2labels):
         with torch.no_grad():
             text_1, attention_mask_1, cls_1 = text.to(device), attention_mask.to(device).to(device), cls.to(device)
             # we use the same dataset for training and testing
-            loss, output, logits = model(text_1, attention_mask=attention_mask_1, labels=cls_1, dataset = dataset_chosen[j], output_logits=True)
+            _, _, logits = model(text_1, attention_mask=attention_mask_1, labels=cls_1, dataset = dataset_chosen[j], output_logits=True)
             # val_loss += loss.mean().item()
             prob.extend(logits)
-        preds = [[id2label[int(x)] for j,x in enumerate(y[1:orig_len[i]-1]) if int(cls[i][j + 1]) != -100] for i,y in enumerate(output)]
-        gold = [[id2label[int(x)] for x in y[1:orig_len[i]-1] if int(x) != -100] for i,y in enumerate(cls)]
+        # preds = [[id2label[int(x)] for j,x in enumerate(y[1:orig_len[i]-1]) if int(cls[i][j + 1]) != -100] for i,y in enumerate(output)]
+        # gold = [[id2label[int(x)] for x in y[1:orig_len[i]-1] if int(x) != -100] for i,y in enumerate(cls)]
 
-        bpred, bgold, bcrct, pred_span_per_type, gold_span_per_type, crct_span_per_type = batch_span_eval(preds, gold)
-        total_pred += bpred
-        total_gold += bgold
-        total_crct += bcrct
-        for x in pred_span_per_type:
-            total_pred_per_type[x] += pred_span_per_type[x]
-            total_gold_per_type[x] += gold_span_per_type[x]
-            total_crct_per_type[x] += crct_span_per_type[x]
+        # bpred, bgold, bcrct, pred_span_per_type, gold_span_per_type, crct_span_per_type = batch_span_eval(preds, gold)
+        # total_pred += bpred
+        # total_gold += bgold
+        # total_crct += bcrct
+        # for x in pred_span_per_type:
+        #     total_pred_per_type[x] += pred_span_per_type[x]
+        #     total_gold_per_type[x] += gold_span_per_type[x]
+        #     total_crct_per_type[x] += crct_span_per_type[x]
 
-    microp = total_crct/total_pred if total_pred > 0 else 0
-    micror = total_crct/total_gold if total_gold > 0 else 0
-    microf1 = 2*microp*micror/(microp + micror) if (microp + micror) > 0 else 0
+    # microp = total_crct/total_pred if total_pred > 0 else 0
+    # micror = total_crct/total_gold if total_gold > 0 else 0
+    # microf1 = 2*microp*micror/(microp + micror) if (microp + micror) > 0 else 0
           
     prob = pad_sequence(prob, batch_first = True)
     print("predicted probablity shape")
     print(prob.shape)
-    microp = total_crct/total_pred if total_pred > 0 else 0
-    micror = total_crct/total_gold if total_gold > 0 else 0
-    microf1 = 2*microp*micror/(microp + micror) if (microp + micror) > 0 else 0
-    print(f'\tPrec: {microp * 100:.1f}%(val)\t|\tRecall: {micror * 100:.1f}%(val)\t|\tF1: {microf1 * 100:.1f}%(val)')
+    # microp = total_crct/total_pred if total_pred > 0 else 0
+    # micror = total_crct/total_gold if total_gold > 0 else 0
+    # microf1 = 2*microp*micror/(microp + micror) if (microp + micror) > 0 else 0
+    # print(f'\tPrec: {microp * 100:.1f}%(val)\t|\tRecall: {micror * 100:.1f}%(val)\t|\tF1: {microf1 * 100:.1f}%(val)')
     
     return prob
 
