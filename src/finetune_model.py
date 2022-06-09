@@ -158,3 +158,42 @@ class BertNER(BertForTokenClassification):
                 return outputs, logits
             else:
                 return outputs
+
+    def forward_unsup(self, input_ids,
+                      attention_mask=None,
+                      dataset=0,
+                      position_ids=None,
+                      head_mask=None,
+                      inputs_embeds=None,
+                      t_prob=None,
+                      output_logits=False):
+
+        outputs = self.bert(
+            input_ids,
+            attention_mask=attention_mask,
+            position_ids=position_ids,
+            head_mask=head_mask,
+            inputs_embeds=inputs_embeds,
+        )
+
+        sequence_output = outputs[0]
+        batch_size, max_len, feat_dim = sequence_output.shape
+        sequence_output = self.dropout(sequence_output)
+        logits = self.classifiers[dataset](sequence_output)
+        # logits = torch.cat((self.background.unsqueeze(0).unsqueeze(0).repeat(batch_size, max_len, 1), logits), dim=2)
+        outputs = torch.argmax(logits, dim=2)
+        sel_idx = torch.tensor(
+            [j + i * len(x) for i, x in enumerate(attention_mask) for j in range(len(x)) if x[j] == 1]).cuda()
+        # print(f"shape: {sel_idx.shape}")
+        # print(sel_idx)
+        log_pred_prob = torch.log(F.softmax(logits.view(-1, self.dataset_label_nums[dataset]), dim=-1))
+        log_pred_prob = torch.index_select(log_pred_prob, 0, sel_idx)
+        t_prob = F.softmax(t_prob.view(-1, self.dataset_label_nums[dataset]), dim=-1)
+        t_prob = torch.index_select(t_prob, 0, sel_idx)
+
+        kl_criterion = torch.nn.KLDivLoss()
+        loss = kl_criterion(log_pred_prob, t_prob)
+        if output_logits:
+            return loss, outputs, logits
+        else:
+            return loss, outputs
