@@ -128,7 +128,8 @@ class BertNER(BertForTokenClassification):
         position_ids=None,
         head_mask=None,
         inputs_embeds=None,
-        labels=None):
+        labels=None,
+        output_logits=False):
 
         outputs = self.bert(
             input_ids,
@@ -148,6 +149,9 @@ class BertNER(BertForTokenClassification):
         if labels is not None:
             loss_fct = CrossEntropyLoss()
             loss = loss_fct(logits.view(-1, self.dataset_label_nums[dataset]), labels.view(-1))
-            return loss, outputs
+            if output_logits:
+                return loss, outputs, logits
+            else:
+                return loss, outputs
         else:
             return outputs  
