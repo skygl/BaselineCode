@@ -103,11 +103,8 @@ def train_func(processed_training_set, epoch, tokenizer, label_sentence_dicts, s
         scheduler.step()
 
         if unsup_data_iter is not None:
-            count = 0
             # print(f"unsup batches in this step: {int(unsup_batch_num / len(all_data_index)  * (k + 1)) - int(unsup_batch_num / len(all_data_index) * k)}")
             for k1 in range(int(unsup_batch_num / len(all_data_index) * k), int(unsup_batch_num / len(all_data_index) * (k + 1))):
-                if max_iter != -1 and count == max_iter:
-                    break
                 text, attention_mask, t_prob, orig_len = next(unsup_data_iter)
                 optimizer.zero_grad()
                 text_1, attention_mask_1, t_prob1 = text.to(device), attention_mask.to(device), t_prob.to(device)
@@ -118,8 +115,7 @@ def train_func(processed_training_set, epoch, tokenizer, label_sentence_dicts, s
                 outputs=output
                 optimizer.step()
                 scheduler.step()
-                count += 1
-            # for k1, (text, attention_mask, t_prob, orig_len) in enumerate(data_loader[unsup_batch_num / len(all_data_index) / N_EPOCHS * (epoch * len(all_data_index) + k ):unsup_batch_num / len(all_data_index) / N_EPOCHS * (epoch * len(all_data_index) + k + 1)]): 
+            # for k1, (text, attention_mask, t_prob, orig_len) in enumerate(data_loader[unsup_batch_num / len(all_data_index) / N_EPOCHS * (epoch * len(all_data_index) + k ):unsup_batch_num / len(all_data_index) / N_EPOCHS * (epoch * len(all_data_index) + k + 1)]):
             #     print(k1)
 
 
@@ -665,7 +661,7 @@ if __name__ == "__main__":
                 log(log_path, f"[Epoch - {epoch}] train precision : {microp}\n")
                 log(log_path, f"[Epoch - {epoch}] train recall : {micror}\n")
                 log(log_path, f"[Epoch - {epoch}] train f1-score : {microf1}\n")
-                torch.save(model.module, 'students/' + args.train_text + '_ft_epoch' + str(epoch + 1) + '.pt')
+                torch.save(model.module if gpu_num > 1 else model, 'students/' + args.train_text + '_ft_epoch' + str(epoch + 1) + '.pt')
 
                 valid_loss, microp, micror, microf1, microp_per_type, micror_per_type, microf1_per_type = test(processed_test_set, epoch, test_label_sentence_dicts, soft_kmeans = SOFT_KMEANS)
                 print(f'\tSelf Training Loss: {valid_loss:.4f}(val)\t|\tPrec: {microp * 100:.1f}%(val)\t|\tRecall: {micror * 100:.1f}%(val)\t|\tF1: {microf1 * 100:.1f}%(val)')
